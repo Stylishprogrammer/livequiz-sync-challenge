@@ -64,7 +64,7 @@ export function QuizSelector({ onRoleSelect }: QuizSelectorProps) {
                 onClick={() => onRoleSelect('admin')}
                 className="w-full quiz-button-primary text-lg py-6"
               >
-                Access Admin Dashboard
+                Admin Login/Register
               </Button>
             </CardContent>
           </Card>
@@ -108,11 +108,10 @@ export function QuizSelector({ onRoleSelect }: QuizSelectorProps) {
               </div>
               
               <Button 
-                onClick={handleSchoolJoin}
-                disabled={!schoolName.trim()}
+                onClick={() => onRoleSelect('school')}
                 className="w-full quiz-button-success text-lg py-6"
               >
-                Join Live Quiz
+                School Login/Register
               </Button>
             </CardContent>
           </Card>

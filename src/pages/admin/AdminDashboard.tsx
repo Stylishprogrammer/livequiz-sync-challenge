@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LogOut, Users, HelpCircle, BookOpen, Trophy, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "react-router-dom";
+import { QuestionManager } from "@/components/QuestionManager";
+import { SubjectManager } from "@/components/SubjectManager";
 
 interface Profile {
   full_name: string;
@@ -149,9 +150,10 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="schools">Schools</TabsTrigger>
+            <TabsTrigger value="subjects">Subjects</TabsTrigger>
             <TabsTrigger value="questions">Questions</TabsTrigger>
             <TabsTrigger value="live-quiz">Live Quiz</TabsTrigger>
           </TabsList>
@@ -286,40 +288,12 @@ export default function AdminDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="questions" className="space-y-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-bold">Question Management</h2>
-                <p className="text-muted-foreground">Create and manage quiz questions</p>
-              </div>
-              <Link to="/admin/questions/upload">
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Questions
-                </Button>
-              </Link>
-            </div>
+          <TabsContent value="subjects" className="space-y-6">
+            <SubjectManager />
+          </TabsContent>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {subjects.map((subject) => (
-                <Card key={subject.id}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      {subject.name}
-                      <Badge variant="outline">{subject.question_count}</Badge>
-                    </CardTitle>
-                    <CardDescription>{subject.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Link to={`/admin/questions/subject/${subject.id}`}>
-                      <Button variant="outline" className="w-full">
-                        Manage Questions
-                      </Button>
-                    </Link>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+          <TabsContent value="questions" className="space-y-6">
+            <QuestionManager />
           </TabsContent>
 
           <TabsContent value="live-quiz" className="space-y-6">
@@ -338,12 +312,10 @@ export default function AdminDashboard() {
                   <p className="text-muted-foreground mb-4">
                     Start a live quiz session to begin real-time competition
                   </p>
-                  <Link to="/admin/live-quiz">
-                    <Button size="lg">
-                      <Trophy className="mr-2 h-4 w-4" />
-                      Start Live Quiz
-                    </Button>
-                  </Link>
+                  <Button size="lg">
+                    <Trophy className="mr-2 h-4 w-4" />
+                    Start Live Quiz
+                  </Button>
                 </div>
               </CardContent>
             </Card>

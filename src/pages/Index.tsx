@@ -1,102 +1,101 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { Session, User } from '@supabase/supabase-js';
 import { QuizSelector } from '@/components/QuizSelector';
-import { AdminDashboard } from '@/components/AdminDashboard';
-import { SchoolQuiz } from '@/components/SchoolQuiz';
-
-interface Question {
-  id: number;
-  text: string;
-  options: string[];
-  correctAnswer: number;
-  timeLimit: number;
-}
+import { Button } from '@/components/ui/button';
+import { LogOut } from 'lucide-react';
 
 const Index = () => {
-  const [userRole, setUserRole] = useState<'admin' | 'school' | null>(null);
-  const [schoolName, setSchoolName] = useState<string>('');
-  const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
-  const [isQuestionActive, setIsQuestionActive] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState(0);
-  const [showAnswers, setShowAnswers] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  const handleRoleSelect = (role: 'admin' | 'school', name?: string) => {
-    setUserRole(role);
-    if (role === 'school' && name) {
-      setSchoolName(name);
+  const handleRoleSelect = (role: 'admin' | 'school') => {
+    if (role === 'admin') {
+      navigate('/register/admin');
+    } else {
+      navigate('/register/school');
     }
   };
 
-  const handleQuestionStart = (question: Question) => {
-    setCurrentQuestion(question);
-    setIsQuestionActive(true);
-    setTimeRemaining(question.timeLimit);
-    setShowAnswers(false);
-    
-    // Auto-stop question when time runs out
-    setTimeout(() => {
-      setIsQuestionActive(false);
-    }, question.timeLimit * 1000);
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
   };
 
-  const handleRevealAnswer = () => {
-    setShowAnswers(true);
-    setIsQuestionActive(false);
-  };
-
-  const handleNextQuestion = () => {
-    setCurrentQuestion(null);
-    setIsQuestionActive(false);
-    setTimeRemaining(0);
-    setShowAnswers(false);
-  };
-
-  const handleAnswerSelect = (answerIndex: number) => {
-    console.log(`${schoolName} selected answer: ${answerIndex}`);
-    // In a real app, this would send the answer to the server
-  };
-
-  // Update timer for school view
   useEffect(() => {
-    if (isQuestionActive && timeRemaining > 0) {
-      const interval = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            setIsQuestionActive(false);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [isQuestionActive, timeRemaining]);
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
+    );
 
-  if (!userRole) {
-    return <QuizSelector onRoleSelect={handleRoleSelect} />;
-  }
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-  if (userRole === 'admin') {
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) {
     return (
-      <div className="min-h-screen p-6">
-        <AdminDashboard
-          onQuestionStart={handleQuestionStart}
-          onRevealAnswer={handleRevealAnswer}
-          onNextQuestion={handleNextQuestion}
-        />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">Loading...</div>
       </div>
     );
   }
 
+  if (!user) {
+    return <QuizSelector onRoleSelect={handleRoleSelect} />;
+  }
+
+  // User is authenticated, redirect based on their role
   return (
     <div className="min-h-screen p-6">
-      <SchoolQuiz
-        schoolName={schoolName}
-        currentQuestion={currentQuestion}
-        isQuestionActive={isQuestionActive}
-        timeRemaining={timeRemaining}
-        showAnswers={showAnswers}
-        onAnswerSelect={handleAnswerSelect}
-      />
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold gradient-text">QuizMaster Live</h1>
+        <div className="flex items-center gap-4">
+          <span className="text-muted-foreground">Welcome, {user.email}</span>
+          <Button
+            variant="outline"
+            onClick={handleSignOut}
+            className="flex items-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign Out
+          </Button>
+        </div>
+      </div>
+      
+      <div className="text-center space-y-6">
+        <div className="glass-card p-8 max-w-md mx-auto">
+          <h2 className="text-xl font-semibold mb-4">Choose Your Dashboard</h2>
+          <div className="space-y-4">
+            <Button
+              onClick={() => navigate('/admin/dashboard')}
+              className="w-full quiz-button-primary"
+            >
+              Admin Dashboard
+            </Button>
+            <Button
+              onClick={() => navigate('/login')}
+              variant="outline"
+              className="w-full"
+            >
+              Back to Login
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
