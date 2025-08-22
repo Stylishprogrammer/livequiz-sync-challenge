@@ -136,20 +136,16 @@ export default function Login() {
 
           <div className="mt-6 text-center space-y-2">
             <p className="text-sm text-muted-foreground">
-              Don't have an account?
+              Don't have a school account?
             </p>
-            <div className="space-y-2">
-              <Link to="/register/school">
-                <Button variant="outline" className="w-full">
-                  Register as School
-                </Button>
-              </Link>
-              <Link to="/register/admin">
-                <Button variant="outline" className="w-full">
-                  Register as Admin
-                </Button>
-              </Link>
-            </div>
+            <Link to="/register/school">
+              <Button variant="outline" className="w-full">
+                Register as School
+              </Button>
+            </Link>
+            <p className="text-xs text-muted-foreground mt-4">
+              Admin accounts can only be created by existing administrators.
+            </p>
           </div>
         </CardContent>
       </Card>

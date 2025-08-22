@@ -9,6 +9,7 @@ import { LogOut, Users, HelpCircle, BookOpen, Trophy, Plus } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { QuestionManager } from "@/components/QuestionManager";
 import { SubjectManager } from "@/components/SubjectManager";
+import UserManager from "@/components/UserManager";
 
 interface Profile {
   full_name: string;
@@ -150,11 +151,12 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="schools">Schools</TabsTrigger>
             <TabsTrigger value="subjects">Subjects</TabsTrigger>
             <TabsTrigger value="questions">Questions</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="live-quiz">Live Quiz</TabsTrigger>
           </TabsList>
 
@@ -294,6 +296,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="questions" className="space-y-6">
             <QuestionManager />
+          </TabsContent>
+
+          <TabsContent value="users" className="space-y-6">
+            <UserManager />
           </TabsContent>
 
           <TabsContent value="live-quiz" className="space-y-6">
