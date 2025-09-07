@@ -69,6 +69,18 @@ export default function AdminRegister() {
       if (authError) throw authError;
 
       if (authData.user) {
+        // Create admin profile record
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: authData.user.id,
+            full_name: formData.fullName,
+            email: formData.email,
+            role: 'admin'
+          });
+
+        if (profileError) throw profileError;
+
         toast({
           title: "Admin registration successful!",
           description: "Please check your email to verify your account.",

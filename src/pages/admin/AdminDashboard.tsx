@@ -9,6 +9,7 @@ import { LogOut, Users, HelpCircle, BookOpen, Trophy, Plus } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { QuestionManager } from "@/components/QuestionManager";
 import { SubjectManager } from "@/components/SubjectManager";
+import { LiveQuizManager } from "@/components/LiveQuizManager";
 import UserManager from "@/components/UserManager";
 
 interface Profile {
@@ -303,28 +304,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="live-quiz" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Trophy className="mr-2 h-5 w-5" />
-                  Live Quiz Control
-                </CardTitle>
-                <CardDescription>
-                  Start and manage live quiz sessions
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">
-                    Start a live quiz session to begin real-time competition
-                  </p>
-                  <Button size="lg">
-                    <Trophy className="mr-2 h-4 w-4" />
-                    Start Live Quiz
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <LiveQuizManager />
           </TabsContent>
         </Tabs>
       </div>

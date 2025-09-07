@@ -66,8 +66,20 @@ export default function SchoolRegister() {
       if (authError) throw authError;
 
       if (authData.user) {
+        // Create profile record first
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: authData.user.id,
+            full_name: formData.contactPerson,
+            email: formData.email,
+            role: 'school'
+          });
+
+        if (profileError) throw profileError;
+
         // Create school record
-        const { error: schoolError } = await supabase
+        const { data: schoolData, error: schoolError } = await supabase
           .from('schools')
           .insert({
             name: formData.schoolName,
@@ -76,9 +88,21 @@ export default function SchoolRegister() {
             contact_phone: formData.phone,
             address: formData.address,
             is_approved: false
-          });
+          })
+          .select()
+          .single();
 
         if (schoolError) throw schoolError;
+
+        // Create school_users relationship
+        const { error: schoolUsersError } = await supabase
+          .from('school_users')
+          .insert({
+            user_id: authData.user.id,
+            school_id: schoolData.id
+          });
+
+        if (schoolUsersError) throw schoolUsersError;
 
         toast({
           title: "Registration successful!",
