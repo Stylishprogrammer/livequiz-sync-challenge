@@ -40,7 +40,7 @@ interface QuestionOption {
 export function QuestionManager() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [selectedSubject, setSelectedSubject] = useState<string>('');
+  const [selectedSubject, setSelectedSubject] = useState<string>('all');
   const [showQuestionForm, setShowQuestionForm] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const { toast } = useToast();
@@ -188,9 +188,9 @@ export function QuestionManager() {
     fetchQuestions();
   };
 
-  const filteredQuestions = selectedSubject 
-    ? questions.filter(q => q.subject_id === selectedSubject)
-    : questions;
+    const filteredQuestions = selectedSubject === 'all' 
+      ? questions 
+      : questions.filter(q => q.subject_id === selectedSubject);
 
   return (
     <div className="space-y-6">
@@ -222,7 +222,7 @@ export function QuestionManager() {
               <SelectValue placeholder="All subjects" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All subjects</SelectItem>
+              <SelectItem value="all">All subjects</SelectItem>
               {subjects.map((subject) => (
                 <SelectItem key={subject.id} value={subject.id}>
                   {subject.name}
