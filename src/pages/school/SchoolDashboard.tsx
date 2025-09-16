@@ -98,12 +98,18 @@ const SchoolDashboard = () => {
         .from('school_users')
         .select('school_id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (schoolUserError || !schoolUser) {
+      if (schoolUserError) {
         console.error('Error fetching school user relationship:', schoolUserError);
-        toast.error('School not found for this user');
+        toast.error('Database error occurred');
         navigate('/login');
+        return;
+      }
+
+      if (!schoolUser) {
+        toast.error('No school associated with this account. Please contact an administrator.');
+        setLoading(false);
         return;
       }
 

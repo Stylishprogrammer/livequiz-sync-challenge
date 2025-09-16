@@ -136,15 +136,22 @@ export default function Login() {
 
           <div className="mt-6 text-center space-y-2">
             <p className="text-sm text-muted-foreground">
-              Don't have a school account?
+              Don't have an account?
             </p>
-            <Link to="/register/school">
-              <Button variant="outline" className="w-full">
-                Register as School
-              </Button>
-            </Link>
+            <div className="flex flex-col gap-2">
+              <Link to="/register/school">
+                <Button variant="outline" className="w-full">
+                  Register as School
+                </Button>
+              </Link>
+              <Link to="/admin/register">
+                <Button variant="outline" className="w-full">
+                  Register as Admin
+                </Button>
+              </Link>
+            </div>
             <p className="text-xs text-muted-foreground mt-4">
-              Admin accounts can only be created by existing administrators.
+              Admin code required for admin registration.
             </p>
           </div>
         </CardContent>
