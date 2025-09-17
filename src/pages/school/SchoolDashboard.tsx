@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { User, Session } from "@supabase/supabase-js";
-import { LogOut, Users, Trophy, Clock } from "lucide-react";
+import { LogOut, Users, Trophy, Clock, Play } from "lucide-react";
+import { SchoolQuiz } from "@/components/SchoolQuiz";
 
 interface School {
   id: string;
@@ -31,8 +32,13 @@ interface LiveQuizSession {
   id: string;
   quiz_id: string;
   is_question_active: boolean;
+  current_question_id: string | null;
   created_at: string;
   updated_at: string;
+  quiz: {
+    title: string;
+    description: string | null;
+  };
 }
 
 const SchoolDashboard = () => {
@@ -42,6 +48,7 @@ const SchoolDashboard = () => {
   const [school, setSchool] = useState<School | null>(null);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [liveQuizSessions, setLiveQuizSessions] = useState<LiveQuizSession[]>([]);
+  const [activeSession, setActiveSession] = useState<LiveQuizSession | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -158,7 +165,10 @@ const SchoolDashboard = () => {
         // Fetch live quiz sessions for these quizzes
         const { data: liveSessionsData, error: liveSessionsError } = await supabase
           .from('live_quiz_sessions')
-          .select('*')
+          .select(`
+            *,
+            quiz:quizzes(title, description)
+          `)
           .in('quiz_id', quizIds)
           .order('created_at', { ascending: false });
 
@@ -166,6 +176,11 @@ const SchoolDashboard = () => {
           console.error('Error fetching live quiz sessions:', liveSessionsError);
         } else {
           setLiveQuizSessions(liveSessionsData || []);
+          // Set active session if there's one with questions active
+          const currentActive = liveSessionsData?.find(session => session.is_question_active);
+          if (currentActive) {
+            setActiveSession(currentActive);
+          }
         }
       }
     } catch (error) {
@@ -186,6 +201,14 @@ const SchoolDashboard = () => {
     }
   };
 
+  const joinLiveSession = (session: LiveQuizSession) => {
+    setActiveSession(session);
+  };
+
+  const leaveLiveSession = () => {
+    setActiveSession(null);
+  };
+
   const getStatusBadge = (isActive: boolean) => {
     return isActive ? (
       <Badge variant="default" className="bg-green-500">Active</Badge>
@@ -193,6 +216,33 @@ const SchoolDashboard = () => {
       <Badge variant="secondary">Inactive</Badge>
     );
   };
+
+  // If participating in active session, show quiz interface
+  if (activeSession && school) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="border-b bg-card">
+          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Live Quiz</h1>
+              <p className="text-muted-foreground">{activeSession.quiz?.title || 'Live Quiz Session'}</p>
+            </div>
+            <Button onClick={leaveLiveSession} variant="outline" size="sm">
+              <LogOut className="w-4 h-4 mr-2" />
+              Leave Quiz
+            </Button>
+          </div>
+        </header>
+        <main className="container mx-auto px-4 py-8">
+          <SchoolQuiz
+            schoolId={school.id}
+            schoolName={school.name}
+            sessionId={activeSession.id}
+          />
+        </main>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -257,12 +307,59 @@ const SchoolDashboard = () => {
           </div>
         )}
 
-        <Tabs defaultValue="quizzes" className="space-y-4">
+        <Tabs defaultValue="live" className="space-y-4">
           <TabsList>
-            <TabsTrigger value="quizzes">My Quizzes</TabsTrigger>
             <TabsTrigger value="live">Live Sessions</TabsTrigger>
+            <TabsTrigger value="quizzes">My Quizzes</TabsTrigger>
             <TabsTrigger value="profile">School Profile</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="live" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Live Quiz Sessions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {liveQuizSessions.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">
+                    No live quiz sessions found.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {liveQuizSessions.map((session) => (
+                      <div
+                        key={session.id}
+                        className="flex items-center justify-between p-4 border rounded-lg"
+                      >
+                        <div>
+                          <h3 className="font-semibold">{session.quiz?.title || 'Live Quiz Session'}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {session.quiz?.description || 'No description available'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Started: {new Date(session.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(session.is_question_active)}
+                          {session.is_question_active && (
+                            <Button
+                              onClick={() => joinLiveSession(session)}
+                              size="sm"
+                              className="ml-2"
+                            >
+                              <Play className="h-4 w-4 mr-2" />
+                              Join Quiz
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="quizzes" className="space-y-4">
             <Card>
