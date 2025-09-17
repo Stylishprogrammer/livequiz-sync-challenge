@@ -11,6 +11,7 @@ import { QuestionManager } from "@/components/QuestionManager";
 import { SubjectManager } from "@/components/SubjectManager";
 import { LiveQuizManager } from "@/components/LiveQuizManager";
 import UserManager from "@/components/UserManager";
+import { BulkQuestionUpload } from "@/components/BulkQuestionUpload";
 
 interface Profile {
   full_name: string;
@@ -152,11 +153,12 @@ export default function AdminDashboard() {
         </div>
 
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="schools">Schools</TabsTrigger>
             <TabsTrigger value="subjects">Subjects</TabsTrigger>
             <TabsTrigger value="questions">Questions</TabsTrigger>
+            <TabsTrigger value="bulk-upload">Bulk Upload</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="live-quiz">Live Quiz</TabsTrigger>
           </TabsList>
@@ -297,6 +299,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="questions" className="space-y-6">
             <QuestionManager />
+          </TabsContent>
+
+          <TabsContent value="bulk-upload" className="space-y-6">
+            <BulkQuestionUpload />
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
