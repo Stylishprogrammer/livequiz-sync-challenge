@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Play, Square, Clock, Users, Trophy, HelpCircle } from 'lucide-react';
+import { Play, Square, Clock, Users, Trophy, HelpCircle, Settings } from 'lucide-react';
+import { LiveQuizControl } from './LiveQuizControl';
 
 interface Quiz {
   id: string;
@@ -36,6 +37,7 @@ export function LiveQuizManager() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [selectedQuizId, setSelectedQuizId] = useState<string>('');
   const [activeSessions, setActiveSessions] = useState<LiveSession[]>([]);
+  const [selectedSessionId, setSelectedSessionId] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -239,23 +241,52 @@ export function LiveQuizManager() {
                   </div>
                   
                   <div className="flex gap-2">
-                    {session.is_question_active && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => stopLiveQuiz(session.id)}
-                      >
-                        <Square className="h-4 w-4 mr-2" />
-                        Stop Session
-                      </Button>
-                    )}
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={() => setSelectedSessionId(session.id)}
+                    >
+                      <Settings className="h-4 w-4 mr-2" />
+                      Control Session
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => stopLiveQuiz(session.id)}
+                    >
+                      <Square className="h-4 w-4 mr-2" />
+                      Stop Session
+                    </Button>
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </CardContent>
+         </CardContent>
       </Card>
+
+      {/* Live Quiz Control Interface */}
+      {selectedSessionId && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Active Session Control
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setSelectedSessionId('')}
+                className="ml-auto"
+              >
+                ✕
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <LiveQuizControl sessionId={selectedSessionId} />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
