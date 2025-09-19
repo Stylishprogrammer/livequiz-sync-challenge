@@ -66,19 +66,7 @@ export default function SchoolRegister() {
       if (authError) throw authError;
 
       if (authData.user) {
-        // Create profile record first
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: authData.user.id,
-            full_name: formData.contactPerson,
-            email: formData.email,
-            role: 'school'
-          });
-
-        if (profileError) throw profileError;
-
-        // Create school record
+        // Create school record first (this will be done by the trigger automatically for the profile)
         const { data: schoolData, error: schoolError } = await supabase
           .from('schools')
           .insert({
@@ -92,9 +80,23 @@ export default function SchoolRegister() {
           .select()
           .single();
 
-        if (schoolError) throw schoolError;
+        if (schoolError) {
+          console.error('School creation error:', schoolError);
+          throw schoolError;
+        }
 
-        // Create school_users relationship
+        // Sign in the user immediately to establish session for school_users creation
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (signInError) {
+          console.error('Sign in error:', signInError);
+          throw signInError;
+        }
+
+        // Now create school_users relationship with authenticated session
         const { error: schoolUsersError } = await supabase
           .from('school_users')
           .insert({
@@ -102,7 +104,13 @@ export default function SchoolRegister() {
             school_id: schoolData.id
           });
 
-        if (schoolUsersError) throw schoolUsersError;
+        if (schoolUsersError) {
+          console.error('School users relationship error:', schoolUsersError);
+          throw schoolUsersError;
+        }
+
+        // Sign out the user so they can go through normal login flow
+        await supabase.auth.signOut();
 
         toast({
           title: "Registration successful!",
