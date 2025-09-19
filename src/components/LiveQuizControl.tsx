@@ -60,6 +60,7 @@ export function LiveQuizControl({ sessionId }: LiveQuizControlProps) {
   const [responses, setResponses] = useState<SchoolResponse[]>([]);
   const [timeRemaining, setTimeRemaining] = useState(30);
   const [loading, setLoading] = useState(false);
+  const [audioTimer, setAudioTimer] = useState<HTMLAudioElement | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -67,6 +68,20 @@ export function LiveQuizControl({ sessionId }: LiveQuizControlProps) {
     fetchQuestions();
     subscribeToSession();
     subscribeToResponses();
+    
+    // Initialize audio timer
+    const audio = new Audio('/assets/30sec_timer.mp3');
+    audio.preload = 'auto';
+    audio.volume = 0.7;
+    setAudioTimer(audio);
+    
+    return () => {
+      // Cleanup audio on unmount
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+    };
   }, [sessionId]);
 
   useEffect(() => {
@@ -211,6 +226,26 @@ export function LiveQuizControl({ sessionId }: LiveQuizControlProps) {
 
       if (remaining > 0) {
         setTimeout(updateTimer, 1000);
+      } else {
+        // Timer finished - automatically stop the question
+        if (audioTimer) {
+          audioTimer.pause();
+          audioTimer.currentTime = 0;
+        }
+        
+        // Automatically stop the question when timer reaches 0
+        supabase
+          .from('live_quiz_sessions')
+          .update({
+            is_question_active: false
+          })
+          .eq('id', sessionId)
+          .then(() => {
+            toast({
+              title: "Time's Up!",
+              description: "Question timer has ended automatically"
+            });
+          });
       }
     };
     updateTimer();
@@ -238,6 +273,19 @@ export function LiveQuizControl({ sessionId }: LiveQuizControlProps) {
         })
         .eq('id', sessionId);
 
+      // Play the 30-second timer audio
+      if (audioTimer) {
+        audioTimer.currentTime = 0; // Reset to beginning
+        audioTimer.play().catch(error => {
+          console.error('Error playing timer audio:', error);
+          toast({
+            title: "Audio Warning",
+            description: "Timer audio couldn't play. Please check your browser settings.",
+            variant: "default"
+          });
+        });
+      }
+
       toast({
         title: "Question Started",
         description: "30-second timer has begun for all schools"
@@ -257,6 +305,12 @@ export function LiveQuizControl({ sessionId }: LiveQuizControlProps) {
 
   const stopQuestion = async () => {
     try {
+      // Stop audio timer if playing
+      if (audioTimer) {
+        audioTimer.pause();
+        audioTimer.currentTime = 0;
+      }
+
       await supabase
         .from('live_quiz_sessions')
         .update({
@@ -279,6 +333,12 @@ export function LiveQuizControl({ sessionId }: LiveQuizControlProps) {
 
   const showAnswers = async () => {
     try {
+      // Stop audio timer if playing
+      if (audioTimer) {
+        audioTimer.pause();
+        audioTimer.currentTime = 0;
+      }
+
       await supabase
         .from('live_quiz_sessions')
         .update({
